@@ -1,5 +1,6 @@
 # SwingDPI
 Make using your Swing application convenient on HiDPI screens
+
 SwingDPI allows you to scale your application for convenient using on screens with high resolution (e.g. FullHD)
 
 ![Swing application that running without DPI scaling compared with the same application running with SwingDPI](https://raw.githubusercontent.com/krlvm/SwingDPI/master/comparasion.png "Swing application that running without DPI scaling compared with the same application running with SwingDPI")
