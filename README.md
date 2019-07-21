@@ -5,8 +5,8 @@ SwingDPI allows you to scale your application for convenient using on screens wi
 
 Supports Java 7 and later
 
-![Swing application that running without DPI scaling compared with the same application running with SwingDPI](https://raw.githubusercontent.com/krlvm/SwingDPI/master/comparasion.png "Swing application that running without DPI scaling compared with the same application running with SwingDPI")
-###### Swing application that running without DPI scaling compared with the same application running with SwingDPI
+![Swing application that running with SwingDPI compared with the same application without DPI scaling](https://raw.githubusercontent.com/krlvm/SwingDPI/master/comparasion.png "Swing application that running without DPI scaling compared with the same application running with SwingDPI")
+###### Swing application that running with SwingDPI compared with the same application without DPI scaling
 
 ### Usage
 At first, you need to connect SwingDPI to your project. You can download .jar from the releases section and connect it to your project as a dependency, which will be extracted into your jarfile. After that, you can import SwingDPI API to your program loader class: `import ru.krlvm.swingdpi.SwingDPI`
