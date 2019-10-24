@@ -2,6 +2,7 @@ package ru.krlvm.swingdpi;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.Collections;
 
@@ -19,7 +20,7 @@ import java.util.Collections;
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1";
+    public static final String VERSION = "1.1.1";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
@@ -194,5 +195,16 @@ public class SwingDPI {
             return dimension;
         }
         return scale((int)(dimension.width-(dimension.width * .2)), (int)(dimension.height-(dimension.height * .15)));
+    }
+
+    /**
+     * If it's unable to scale font of specific component use this method
+     *
+     * @param component - component for scale
+     */
+    public static void scaleFont(JTextComponent component) {
+        Font font = component.getFont();
+        float size = font.getSize()*(scaleFactor*scaleFactor);
+        component.setFont(font.deriveFont(size));
     }
 }
