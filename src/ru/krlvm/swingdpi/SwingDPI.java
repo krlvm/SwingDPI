@@ -8,16 +8,18 @@ import java.util.Collections;
 /**
  * SwingDPI API
  *
+ * API of SwingDPI
+ *
  * SwingDPI allows you to scale your application for convenient using on HiDPI screens
  * Call SwingDPI.applyScalingAutomatically() on your application start for easy scaling
  * GitHub Page: https://github.com/krlvm/SwingDPI
  *
- * @version 1.0
+ * @version 1.1
  * @author krlvm
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.1";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
@@ -26,7 +28,7 @@ public class SwingDPI {
     //is DPI scale applied
     private static boolean scaleApplied = false;
     //suffixes of values that should be scaled
-    private static String[] LOWER_SUFFIXES_FOR_SCALED_INTEGERS = new String[] { "width", "height", "indent", "size", "gap" };
+    private static String[] SUFFIXES_FOR_SCALE = new String[] { "width", "height", "indent", "size", "gap" };
 
     /**
      * Automatically determines scale factor and applies scaling for all existing and new windows
@@ -159,7 +161,7 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of a dimension
+     * Retrieve a scaled version of a dimension
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
@@ -168,12 +170,29 @@ public class SwingDPI {
         return new Dimension((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
     }
 
+    public static Dimension scale(int width, int height) {
+        return scale(new Dimension(width, height));
+    }
+
     private static boolean endsWithOneOf(String text) {
-        for(String lowerSuffixesForScaledInteger : LOWER_SUFFIXES_FOR_SCALED_INTEGERS) {
-            if(lowerSuffixesForScaledInteger.endsWith(text)) {
+        for(String suffix : SUFFIXES_FOR_SCALE) {
+            if(suffix.endsWith(text)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Retrieve scaled version of dimension, scale algorithm of that is optimized for JFrame scaling
+     *
+     * @param dimension - dimension to scale
+     * @return a scaled version of the dimension
+     */
+    public static Dimension scaleFrame(Dimension dimension) {
+        if(!scaleFactorSet) {
+            return dimension;
+        }
+        return scale((int)(dimension.width-(dimension.width * .2)), (int)(dimension.height-(dimension.height * .15)));
     }
 }
