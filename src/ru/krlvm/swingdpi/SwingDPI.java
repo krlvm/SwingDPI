@@ -20,12 +20,14 @@ import java.util.Collections;
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1.1.1";
+    public static final String VERSION = "1.1.1.2";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
     //the applied scale factor, e.g. 1.25 when the system DPI scaling is 125%
     private static float scaleFactor = 1.0f;
+    //default scale factor, 100% scale
+    private static final float DEFAULT_SCALE_FACTOR = 1.0f;
     //is DPI scale applied
     private static boolean scaleApplied = false;
     //suffixes of values that should be scaled
@@ -36,7 +38,9 @@ public class SwingDPI {
      */
     public static void applyScalingAutomatically() {
         determineScaleFactor();
-        setScaleApplied(true);
+        if(scaleFactor != DEFAULT_SCALE_FACTOR) {
+            setScaleApplied(true);
+        }
     }
 
     /**
