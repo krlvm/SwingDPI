@@ -37,11 +37,11 @@ public class ScalableJFrame extends JFrame {
 
     @Override
     public void setSize(Dimension d) {
-        super.setSize(SwingDPI.scaleFrame(d));
+        super.setSize(SwingDPI.scale(d));
     }
 
     @Override
     public void setPreferredSize(Dimension preferredSize) {
-        super.setPreferredSize(SwingDPI.scaleFrame(preferredSize));
+        super.setPreferredSize(SwingDPI.scale(preferredSize));
     }
 }

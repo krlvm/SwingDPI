@@ -213,25 +213,12 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of dimension
-     *
-     * @param dimension - dimension to scale
-     * @return a scaled version of the dimension
-     */
-    public static Dimension scaleFrame(Dimension dimension) {
-        if(!scaleFactorSet) {
-            return dimension;
-        }
-        return scale((int)(dimension.width-(dimension.width * .2)), (int)(dimension.height-(dimension.height * .15)));
-    }
-
-    /**
      * Retrieve scaled version of dimension, scale algorithm of that is optimized for JFrame scaling
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
      */
-    public static Dimension advancedFrameScale(Dimension dimension) {
+    public static Dimension scaleFrame(Dimension dimension) {
         if(!scaleFactorSet) {
             return dimension;
         }
