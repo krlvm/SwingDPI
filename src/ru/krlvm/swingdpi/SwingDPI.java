@@ -172,6 +172,9 @@ public class SwingDPI {
      * @return a scaled version of the dimension
      */
     public static Dimension scale(Dimension dimension) {
+        if(!scaleFactorSet) {
+            return dimension;
+        }
         dimension.setSize((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
         return dimension;
     }
@@ -183,6 +186,9 @@ public class SwingDPI {
      * @return a scaled version of the dimension
      */
     public static Dimension getScaledDimension(Dimension dimension) {
+        if(!scaleFactorSet) {
+            return dimension;
+        }
         return new Dimension((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
     }
 
@@ -191,6 +197,9 @@ public class SwingDPI {
     }
 
     public static int scale(int i) {
+        if(!scaleFactorSet) {
+            return i;
+        }
         return (int)(i*scaleFactor);
     }
 
