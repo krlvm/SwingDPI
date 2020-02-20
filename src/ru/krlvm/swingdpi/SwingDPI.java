@@ -166,17 +166,32 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve a scaled version of a dimension
+     * Scales dimension
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
      */
     public static Dimension scale(Dimension dimension) {
+        dimension.setSize((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
+        return dimension;
+    }
+
+    /**
+     * Retrieve a scaled version of a dimension
+     *
+     * @param dimension - dimension to scale
+     * @return a scaled version of the dimension
+     */
+    public static Dimension getScaledDimension(Dimension dimension) {
         return new Dimension((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
     }
 
     public static Dimension scale(int width, int height) {
         return scale(new Dimension(width, height));
+    }
+
+    public static int scale(int i) {
+        return (int)(i*scaleFactor);
     }
 
     private static boolean endsWithOneOf(String text) {
@@ -189,12 +204,25 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of dimension, scale algorithm of that is optimized for JFrame scaling
+     * Retrieve scaled version of dimension
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
      */
     public static Dimension scaleFrame(Dimension dimension) {
+        if(!scaleFactorSet) {
+            return dimension;
+        }
+        return scale((int)(dimension.width-(dimension.width * .2)), (int)(dimension.height-(dimension.height * .15)));
+    }
+
+    /**
+     * Retrieve scaled version of dimension, scale algorithm of that is optimized for JFrame scaling
+     *
+     * @param dimension - dimension to scale
+     * @return a scaled version of the dimension
+     */
+    public static Dimension advancedFrameScale(Dimension dimension) {
         if(!scaleFactorSet) {
             return dimension;
         }
