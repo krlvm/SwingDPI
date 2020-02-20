@@ -20,7 +20,7 @@ import java.util.Collections;
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1.1.2";
+    public static final String VERSION = "1.1.3";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
@@ -234,7 +234,7 @@ public class SwingDPI {
      *
      * @param component - component for scale
      */
-    public static void scaleFont(JTextComponent component) {
+    public static void scaleFont(Component component) {
         Font font = component.getFont();
         float size = font.getSize()*scaleFactor;
         component.setFont(font.deriveFont(size));
