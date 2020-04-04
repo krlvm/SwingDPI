@@ -160,7 +160,7 @@ public class SwingDPI {
             if(!endsWithOneOf((key instanceof String) ? ((String)key).toLowerCase() : "")) {
                 return original;
             }
-            return (int)((int)original * scaleFactor);
+            return (int)((Integer)original * scaleFactor);
         }
         return null;
     }
