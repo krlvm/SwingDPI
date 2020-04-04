@@ -11,6 +11,15 @@ You can download latest build from `Releases` tab, supports Java 7 and later
 ### Using in a project
 At first, you need to connect SwingDPI to your project. You can download .jar from the releases section and connect it to your project as a dependency, which will be extracted into your jarfile. After that, you can import SwingDPI API to your program loader class: `import ru.krlvm.swingdpi.SwingDPI`
 
+You also can add SwingDPI using Maven:
+```
+<dependency>
+  <groupId>io.github.krlvm</groupId>
+  <artifactId>swingdpi</artifactId>
+  <version>1.1.5</version>
+</dependency>
+```
+
 Easiest method of usage is adding this line to your loader code, before creating any frames: `SwingDPI.applyScalingAutomatically()` - SwingDPI automatically determine the system DPI scaling and apply it for your program - nothing more is needed. For more fine tuning you can play with `scale(dimension)` method that allow you to change frames and elements size depending on screen DPI. You can explore and edit the code for you according to your needs - source code is opened under the MIT license.
 
 ### Using outside a project
