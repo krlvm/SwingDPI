@@ -6,7 +6,14 @@
 
     <groupId>io.github.krlvm</groupId>
     <artifactId>swingdpi</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.5</version>
 
-    
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub krlvm Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/krlvm/SwingDPI</url>
+        </repository>
+    </distributionManagement>
+
 </project>
