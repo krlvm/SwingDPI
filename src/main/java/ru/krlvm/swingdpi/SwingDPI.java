@@ -2,9 +2,8 @@ package ru.krlvm.swingdpi;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * SwingDPI API
@@ -31,7 +30,10 @@ public class SwingDPI {
     //is DPI scale applied
     private static boolean scaleApplied = false;
     //suffixes of values that should be scaled
-    private static String[] SUFFIXES_FOR_SCALE = new String[] { "width", "height", "indent", "size", "gap" };
+    private static final String[] SUFFIXES_FOR_SCALE = new String[] { "width", "height", "indent", "size", "gap" };
+    //exclude/whitelist defaults (something one)
+    private static Set<String> BLACKLISTED_DEFAULTS;
+    private static Set<String> WHITELISTED_DEFAULTS;
 
     /**
      * Automatically determines scale factor and applies scaling for all existing and new windows
@@ -82,6 +84,15 @@ public class SwingDPI {
 
         UIDefaults defaults = UIManager.getLookAndFeelDefaults(); //gets the Swing UI defaults - we will writing in them
         for(Object key : Collections.list(defaults.keys())) { //processing all default UI keys
+            if(BLACKLISTED_DEFAULTS != null) {
+                if(BLACKLISTED_DEFAULTS.contains(key.toString())) {
+                    continue;
+                }
+            } else if(WHITELISTED_DEFAULTS != null) {
+                if(!WHITELISTED_DEFAULTS.contains(key.toString())) {
+                    continue;
+                }
+            }
             Object original = defaults.get(key);
             Object newValue = scale(key, original);
             if(newValue != null && newValue != original) {
@@ -226,7 +237,7 @@ public class SwingDPI {
     }
 
     /**
-     * If it's unable to scale font of specific component use this method
+     * If font of specific component aren't scaling automatically use this method
      *
      * @param component - component for scale
      */
@@ -234,5 +245,57 @@ public class SwingDPI {
         Font font = component.getFont();
         float size = font.getSize()*scaleFactor;
         component.setFont(font.deriveFont(size));
+    }
+
+    /**
+     * Exclude some UI Defaults from scaling (blacklist)
+     *
+     * @param toExclude - UI Defaults to exclude
+     * @throws IllegalStateException - if UI Defaults is in whitelist mode
+     */
+    public static void excludeDefaults(Collection<String> toExclude) {
+        if(WHITELISTED_DEFAULTS != null) {
+            throw new IllegalStateException("UI Defaults is in whitelist mode");
+        }
+        if(BLACKLISTED_DEFAULTS == null) {
+            BLACKLISTED_DEFAULTS = new HashSet<String>();
+        }
+        BLACKLISTED_DEFAULTS.addAll(toExclude);
+    }
+
+    /**
+     * Exclude some UI Defaults from scaling (blacklist)
+     *
+     * @param toExclude - UI Defaults to exclude
+     * @throws IllegalStateException - if UI Defaults is in whitelist mode
+     */
+    public static void excludeDefaults(String... toExclude) {
+        excludeDefaults(Arrays.asList(toExclude));
+    }
+
+    /**
+     * Allow to scale only specified UI Defaults (whitelist)
+     *
+     * @param toWhitelist - UI Defaults to whitelist
+     * @throws IllegalStateException - if UI Defaults is in blacklist mode
+     */
+    public static void whitelistDefaults(Collection<String> toWhitelist) {
+        if(BLACKLISTED_DEFAULTS != null) {
+            throw new IllegalStateException("UI Defaults is in blacklist mode");
+        }
+        if(WHITELISTED_DEFAULTS == null) {
+            WHITELISTED_DEFAULTS = new HashSet<String>();
+        }
+        WHITELISTED_DEFAULTS.addAll(toWhitelist);
+    }
+
+    /**
+     * Allow to scale only specified UI Defaults (whitelist)
+     *
+     * @param toWhitelist - UI Defaults to whitelist
+     * @throws IllegalStateException - if UI Defaults is in blacklist mode
+     */
+    public static void whitelistDefaults(String... toWhitelist) {
+        whitelistDefaults(Arrays.asList(toWhitelist));
     }
 }
