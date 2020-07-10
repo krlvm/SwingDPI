@@ -151,15 +151,15 @@ public class SwingDPI {
         }
         return scaleFactor;
     }
-
     /**
      * Retrieve scaled version of a param from Swing UI defaults
      *
      * @param key - param key
      * @param original - original value
+     * @param scaleFactor - scale factor
      * @return a scaled param version
      */
-    private static Object scale(Object key, Object original) {
+    private static Object scale(Object key, Object original, float scaleFactor) {
         if(original instanceof Font) {
             if(original instanceof FontUIResource && key.toString().endsWith(".font")) {
                 int newSize = (int)(Math.round((float)((Font)original).getSize()) * scaleFactor);
@@ -174,6 +174,17 @@ public class SwingDPI {
             return (int)((Integer)original * scaleFactor);
         }
         return null;
+    }
+
+    /**
+     * Retrieve scaled version of a param from Swing UI defaults
+     *
+     * @param key - param key
+     * @param original - original value
+     * @return a scaled param version
+     */
+    private static Object scale(Object key, Object original) {
+        return scale(key, original, scaleFactor);
     }
 
     /**
