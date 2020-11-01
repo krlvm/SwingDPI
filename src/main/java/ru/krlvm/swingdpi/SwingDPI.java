@@ -3,23 +3,25 @@ package ru.krlvm.swingdpi;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
 
 /**
  * SwingDPI API
- *
+ * <p>
  * API of SwingDPI
- *
+ * <p>
  * SwingDPI allows you to scale your application for convenient using on HiDPI screens
  * Call SwingDPI.applyScalingAutomatically() on your application start for easy scaling
  * GitHub Page: https://github.com/krlvm/SwingDPI
  *
- * @version 1.1
  * @author krlvm
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1.6";
+    public static final String VERSION = "1.1.7";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
@@ -29,18 +31,33 @@ public class SwingDPI {
     private static final float DEFAULT_SCALE_FACTOR = 1.0f;
     //is DPI scale applied
     private static boolean scaleApplied = false;
-    //suffixes of values that should be scaled
-    private static final String[] SUFFIXES_FOR_SCALE = new String[] { "width", "height", "indent", "size", "gap" };
     //exclude/whitelist defaults (something one)
     private static Set<String> BLACKLISTED_DEFAULTS;
     private static Set<String> WHITELISTED_DEFAULTS;
+    // has the Java 9+ native scaling been disabled
+    private static boolean java9ScalingDisabled = !isJava9();
 
     /**
      * Automatically determines scale factor and applies scaling for all existing and new windows
+     * Java 9+ Native Scaling disables
      */
     public static void applyScalingAutomatically() {
+        applyScalingAutomatically(true);
+    }
+
+    /**
+     * Automatically determines scale factor and applies scaling for all existing and new windows
+     * <p>
+     * Java 9+ Native Scaling is very buggy and have a poor font rendering
+     * If you don't want to disable the Java 9 Scaling, SwingDPI will not work
+     * to avoid double scaling
+     */
+    public static void applyScalingAutomatically(boolean disableJava9NativeScaling) {
+        if (isJava9() && !disableJava9NativeScaling) {
+            return;
+        }
         determineScaleFactor();
-        if(scaleFactor != DEFAULT_SCALE_FACTOR) {
+        if (scaleFactor != DEFAULT_SCALE_FACTOR) {
             setScaleApplied(true);
         }
     }
@@ -52,7 +69,7 @@ public class SwingDPI {
      */
     public static float determineScaleFactor() {
         float resolution = Toolkit.getDefaultToolkit().getScreenResolution(); //gets the screen resolution in percent, i.e. system DPI scaling
-        if(resolution != 100.0f) { //when the system DPI scaling is not 100%
+        if (resolution != 100.0f) { //when the system DPI scaling is not 100%
             setScaleFactor(resolution / 96.0f); //divide the system DPI scaling by default (100%) DPI and get the scale factor
         }
         return scaleFactor;
@@ -70,46 +87,58 @@ public class SwingDPI {
     /**
      * Applies/disables scale for new and existing frames (depending on param)
      *
-     * @param apply - enable or disable scaling
+     * @param apply               - enable or disable scaling
      * @param scaleExistingFrames - enable or disable scaling for existing frames
      */
     public static void setScaleApplied(boolean apply, boolean scaleExistingFrames) {
-        if(apply == scaleApplied) {
+        if (apply == scaleApplied) {
             return; //scale already applied/disabled
         }
         scaleApplied = apply;
-        if(!apply) {
+        if (!apply) {
             setScaleFactor(1.0f); //after that, the scaling factor should be determined again
         }
 
         UIDefaults defaults = UIManager.getLookAndFeelDefaults(); //gets the Swing UI defaults - we will writing in them
-        for(Object key : Collections.list(defaults.keys())) { //processing all default UI keys
-            if(BLACKLISTED_DEFAULTS != null) {
-                if(BLACKLISTED_DEFAULTS.contains(key.toString())) {
+        for (Object key : Collections.list(defaults.keys())) { //processing all default UI keys
+            if(isWindowsLF() && Arrays.asList
+                    (
+                        "RadioButtonMenuItem.font",
+                        "CheckBoxMenuItem.font",
+                        "MenuBar.font",
+                        "PopupMenu.font",
+                        "MenuItem.font",
+                        "Menu.font"
+                    ).contains(key.toString())) {
+                continue;
+            }
+            if (BLACKLISTED_DEFAULTS != null) {
+                if (BLACKLISTED_DEFAULTS.contains(key.toString())) {
                     continue;
                 }
-            } else if(WHITELISTED_DEFAULTS != null) {
-                if(!WHITELISTED_DEFAULTS.contains(key.toString())) {
+            } else if (WHITELISTED_DEFAULTS != null) {
+                if (!WHITELISTED_DEFAULTS.contains(key.toString())) {
                     continue;
                 }
             }
             Object original = defaults.get(key);
             Object newValue = scale(key, original);
-            if(newValue != null && newValue != original) {
+            if (newValue != null && newValue != original) {
                 defaults.put(key, newValue); //updating defaults
             }
         }
-        if(scaleExistingFrames) {
-            for(Frame frame : Frame.getFrames()) { //gets all created frames
-                if(!(frame instanceof JFrame)) {
+        fixJOptionPaneIcons();
+        if (scaleExistingFrames) {
+            for (Frame frame : Frame.getFrames()) { //gets all created frames
+                if (!(frame instanceof JFrame)) {
                     return;
                 }
                 Dimension dimension = frame.getSize();
                 frame.setSize(scale(dimension));
-                for(Component component : ((JFrame) frame).getContentPane().getComponents()) {
+                for (Component component : ((JFrame) frame).getContentPane().getComponents()) {
                     dimension = component.getSize();
                     Dimension newDimension = scale(dimension);
-                    if(component instanceof JTextField) {
+                    if (component instanceof JTextField) {
                         component.setPreferredSize(newDimension);
                     } else {
                         component.setSize(newDimension);
@@ -134,7 +163,8 @@ public class SwingDPI {
      * @param scaleFactor - new scale factor
      */
     public static void setScaleFactor(float scaleFactor) {
-        if(!scaleFactorSet) {
+        disableJava9NativeScaling(); // avoid double scaling
+        if (!scaleFactorSet) {
             scaleFactorSet = true;
         }
         SwingDPI.scaleFactor = scaleFactor;
@@ -146,32 +176,33 @@ public class SwingDPI {
      * @return scale factor
      */
     public static float getScaleFactor() {
-        if(!scaleFactorSet) {
+        if (!scaleFactorSet) {
             determineScaleFactor();
         }
         return scaleFactor;
     }
+
     /**
      * Retrieve scaled version of a param from Swing UI defaults
      *
-     * @param key - param key
-     * @param original - original value
+     * @param key         - param key
+     * @param original    - original value
      * @param scaleFactor - scale factor
      * @return a scaled param version
      */
     private static Object scale(Object key, Object original, float scaleFactor) {
-        if(original instanceof Font) {
-            if(original instanceof FontUIResource && key.toString().endsWith(".font")) {
-                int newSize = (int)(Math.round((float)((Font)original).getSize()) * scaleFactor);
-                return new FontUIResource(((Font)original).getName(), ((Font)original).getStyle(), newSize);
+        if (original instanceof Font) {
+            if (original instanceof FontUIResource && key.toString().endsWith(".font")) {
+                int newSize = (int) (Math.round((float) ((Font) original).getSize()) * scaleFactor);
+                return new FontUIResource(((Font) original).getName(), ((Font) original).getStyle(), newSize);
             }
             return original;
         }
-        if(original instanceof Integer) {
-            if(!endsWithOneOf((key instanceof String) ? ((String)key).toLowerCase() : "")) {
+        if (original instanceof Integer) {
+            if (!endsWithOneOf((key instanceof String) ? ((String) key).toLowerCase() : "")) {
                 return original;
             }
-            return (int)((Integer)original * scaleFactor);
+            return (int) ((Integer) original * scaleFactor);
         }
         return null;
     }
@@ -179,7 +210,7 @@ public class SwingDPI {
     /**
      * Retrieve scaled version of a param from Swing UI defaults
      *
-     * @param key - param key
+     * @param key      - param key
      * @param original - original value
      * @return a scaled param version
      */
@@ -194,10 +225,10 @@ public class SwingDPI {
      * @return a scaled version of the dimension
      */
     public static Dimension scale(Dimension dimension) {
-        if(!scaleFactorSet) {
+        if (!scaleFactorSet) {
             return dimension;
         }
-        dimension.setSize((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
+        dimension.setSize((int) (dimension.getWidth() * scaleFactor), (int) (dimension.getHeight() * scaleFactor));
         return dimension;
     }
 
@@ -208,10 +239,10 @@ public class SwingDPI {
      * @return a scaled version of the dimension
      */
     public static Dimension getScaledDimension(Dimension dimension) {
-        if(!scaleFactorSet) {
+        if (!scaleFactorSet) {
             return dimension;
         }
-        return new Dimension((int)(dimension.getWidth() * scaleFactor), (int)(dimension.getHeight() * scaleFactor));
+        return new Dimension((int) (dimension.getWidth() * scaleFactor), (int) (dimension.getHeight() * scaleFactor));
     }
 
     public static Dimension scale(int width, int height) {
@@ -219,15 +250,15 @@ public class SwingDPI {
     }
 
     public static int scale(int i) {
-        if(!scaleFactorSet) {
+        if (!scaleFactorSet) {
             return i;
         }
-        return (int)(i*scaleFactor);
+        return (int) (i * scaleFactor);
     }
 
     private static boolean endsWithOneOf(String text) {
-        for(String suffix : SUFFIXES_FOR_SCALE) {
-            if(suffix.endsWith(text)) {
+        for (String suffix : new String[]{"width", "height", "indent", "size", "gap"}) {
+            if (suffix.endsWith(text)) {
                 return true;
             }
         }
@@ -241,10 +272,10 @@ public class SwingDPI {
      * @return a scaled version of the dimension
      */
     public static Dimension scaleFrame(Dimension dimension) {
-        if(!scaleFactorSet) {
+        if (!scaleFactorSet) {
             return dimension;
         }
-        return scale((int)(dimension.width-(dimension.width * .2)), (int)(dimension.height-(dimension.height * .15)));
+        return scale((int) (dimension.width - (dimension.width * .2)), (int) (dimension.height - (dimension.height * .15)));
     }
 
     /**
@@ -254,8 +285,42 @@ public class SwingDPI {
      */
     public static void scaleFont(Component component) {
         Font font = component.getFont();
-        float size = font.getSize()*scaleFactor;
+        float size = font.getSize() * scaleFactor;
         component.setFont(font.deriveFont(size));
+    }
+
+    // https://stackoverflow.com/questions/33926645/joptionpane-icon-gets-cropped-in-windows-10
+    private static void fixJOptionPaneIcons() {
+        if (!isWindowsLF() || isJava9()) return;
+        try {
+            String[][] icons = {
+                    {"OptionPane.warningIcon", "65581"},
+                    {"OptionPane.questionIcon", "65583"},
+                    {"OptionPane.errorIcon", "65585"},
+                    {"OptionPane.informationIcon", "65587"}
+            };
+
+            //obtain a method for creating proper icons
+            Method getIconBits = Class.forName("sun.awt.shell.Win32ShellFolder2").getDeclaredMethod("getIconBits", long.class, int.class);
+            getIconBits.setAccessible(true);
+            int icon32Size = (scaleFactor == 1) ? (32) : ((scaleFactor == 1.25) ? (40) : ((scaleFactor == 1.5) ? (45) : ((int) (32 * scaleFactor))));
+            Object[] arguments = {null, icon32Size};
+            for (String[] s : icons) {
+                if (UIManager.get(s[0]) instanceof ImageIcon) {
+                    arguments[0] = Long.valueOf(s[1]);
+                    //this method is static, so the first argument can be null
+                    int[] iconBits = (int[]) getIconBits.invoke(null, arguments);
+                    if (iconBits != null) {
+                        //create an image from the obtained array
+                        BufferedImage img = new BufferedImage(icon32Size, icon32Size, BufferedImage.TYPE_INT_ARGB);
+                        img.setRGB(0, 0, icon32Size, icon32Size, iconBits, 0, icon32Size);
+                        ImageIcon newIcon = new ImageIcon(img);
+                        //override previous icon with the new one
+                        UIManager.put(s[0], newIcon);
+                    }
+                }
+            }
+        } catch (Exception ignore) {}
     }
 
     /**
@@ -265,10 +330,10 @@ public class SwingDPI {
      * @throws IllegalStateException - if UI Defaults is in whitelist mode
      */
     public static void excludeDefaults(Collection<String> toExclude) {
-        if(WHITELISTED_DEFAULTS != null) {
+        if (WHITELISTED_DEFAULTS != null) {
             throw new IllegalStateException("UI Defaults is in whitelist mode");
         }
-        if(BLACKLISTED_DEFAULTS == null) {
+        if (BLACKLISTED_DEFAULTS == null) {
             BLACKLISTED_DEFAULTS = new HashSet<String>();
         }
         BLACKLISTED_DEFAULTS.addAll(toExclude);
@@ -291,10 +356,10 @@ public class SwingDPI {
      * @throws IllegalStateException - if UI Defaults is in blacklist mode
      */
     public static void whitelistDefaults(Collection<String> toWhitelist) {
-        if(BLACKLISTED_DEFAULTS != null) {
+        if (BLACKLISTED_DEFAULTS != null) {
             throw new IllegalStateException("UI Defaults is in blacklist mode");
         }
-        if(WHITELISTED_DEFAULTS == null) {
+        if (WHITELISTED_DEFAULTS == null) {
             WHITELISTED_DEFAULTS = new HashSet<String>();
         }
         WHITELISTED_DEFAULTS.addAll(toWhitelist);
@@ -308,5 +373,25 @@ public class SwingDPI {
      */
     public static void whitelistDefaults(String... toWhitelist) {
         whitelistDefaults(Arrays.asList(toWhitelist));
+    }
+
+    public static void disableJava9NativeScaling() {
+        if (isJava9()) {
+            System.setProperty("sun.java2d.uiScale", "1.0");
+            System.setProperty("prism.allowhidpi", "false");
+            java9ScalingDisabled = true;
+        }
+    }
+
+    public static boolean isLegacyScalingEnabled() {
+        return !java9ScalingDisabled;
+    }
+
+    // or greater
+    private static boolean isJava9() {
+        return !System.getProperty("java.specification.version").startsWith("1.");
+    }
+    private static boolean isWindowsLF() {
+        return UIManager.getLookAndFeel().getClass().getName().equals("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
     }
 }
