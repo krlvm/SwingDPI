@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1.7";
+    public static final String VERSION = "1.1.8";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;
@@ -293,7 +293,7 @@ public class SwingDPI {
 
     // https://stackoverflow.com/questions/33926645/joptionpane-icon-gets-cropped-in-windows-10
     private static void fixJOptionPaneIcons() {
-        if (!isWindowsLF() || isJava9() || (scaleFactor != 1.25 || scaleFactor != 1.5)) return;
+        if (!isWindowsLF() || isJava9() || (scaleFactor != 1.25 && scaleFactor != 1.5)) return;
         try {
             String[][] icons = {
                     {"OptionPane.warningIcon", "65581"},
