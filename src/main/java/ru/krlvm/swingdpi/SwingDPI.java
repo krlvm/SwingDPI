@@ -108,7 +108,8 @@ public class SwingDPI {
                         "MenuBar.font",
                         "PopupMenu.font",
                         "MenuItem.font",
-                        "Menu.font"
+                        "Menu.font",
+                        "ToolTip.font"
                     ).contains(key.toString())) {
                 continue;
             }
