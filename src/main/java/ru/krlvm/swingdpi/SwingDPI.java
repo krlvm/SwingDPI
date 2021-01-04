@@ -63,7 +63,7 @@ public class SwingDPI {
     }
 
     /**
-     * Determines and sets the system DPI scaling setting and retrieves scale factor
+     * Determines, sets the system DPI scaling setting and retrieves scale factor
      *
      * @return DPI scale factor
      */
@@ -85,7 +85,7 @@ public class SwingDPI {
     }
 
     /**
-     * Applies/disables scale for new and existing frames (depending on param)
+     * Applies/disables scale for new and the existing frames
      *
      * @param apply               - enable or disable scaling
      * @param scaleExistingFrames - enable or disable scaling for existing frames
@@ -183,7 +183,7 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of a param from Swing UI defaults
+     * Retrieves a scaled version of the param from Swing UI defaults
      *
      * @param key         - param key
      * @param original    - original value
@@ -208,7 +208,7 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of a param from Swing UI defaults
+     * Retrieves a scaled version of the param from Swing UI defaults
      *
      * @param key      - param key
      * @param original - original value
@@ -233,7 +233,7 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve a scaled version of a dimension
+     * Retrieves a scaled version of a dimension
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
@@ -266,7 +266,8 @@ public class SwingDPI {
     }
 
     /**
-     * Retrieve scaled version of dimension, scale algorithm of that is optimized for JFrame scaling
+     * Retrieves scaled version of dimension
+     * The scaling algorithm is optimized for frame scaling
      *
      * @param dimension - dimension to scale
      * @return a scaled version of the dimension
@@ -279,7 +280,7 @@ public class SwingDPI {
     }
 
     /**
-     * If font of specific component aren't scaling automatically use this method
+     * If font of specific component did not scaled automatically use this method
      *
      * @param component - component for scale
      */
@@ -291,7 +292,7 @@ public class SwingDPI {
 
     // https://stackoverflow.com/questions/33926645/joptionpane-icon-gets-cropped-in-windows-10
     private static void fixJOptionPaneIcons() {
-        if (!isWindowsLF() || isJava9()) return;
+        if (!isWindowsLF() || isJava9() || (scaleFactor != 1.25 || scaleFactor != 1.5)) return;
         try {
             String[][] icons = {
                     {"OptionPane.warningIcon", "65581"},
@@ -320,7 +321,9 @@ public class SwingDPI {
                     }
                 }
             }
-        } catch (Exception ignore) {}
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
