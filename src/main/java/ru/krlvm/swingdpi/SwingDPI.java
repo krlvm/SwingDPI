@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class SwingDPI {
 
-    public static final String VERSION = "1.1.8";
+    public static final String VERSION = "1.1.9";
 
     //is scale factor set
     private static boolean scaleFactorSet = false;

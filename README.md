@@ -16,7 +16,7 @@ You also can add SwingDPI using Maven:
 <dependency>
   <groupId>io.github.krlvm</groupId>
   <artifactId>swingdpi</artifactId>
-  <version>1.1.5</version>
+  <version>1.1.9</version>
 </dependency>
 ```
 
