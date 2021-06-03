@@ -286,9 +286,12 @@ public class SwingDPI {
      * @param component - component for scale
      */
     public static void scaleFont(Component component) {
+        setFontSize(component, component.getFont().getSize());
+    }
+
+    public static void setFontSize(Component component, float size) {
         Font font = component.getFont();
-        float size = font.getSize() * scaleFactor;
-        component.setFont(font.deriveFont(size));
+        component.setFont(font.deriveFont(size * scaleFactor));
     }
 
     // https://stackoverflow.com/questions/33926645/joptionpane-icon-gets-cropped-in-windows-10
