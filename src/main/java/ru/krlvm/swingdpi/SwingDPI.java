@@ -35,7 +35,8 @@ public class SwingDPI {
     private static Set<String> BLACKLISTED_DEFAULTS;
     private static Set<String> WHITELISTED_DEFAULTS;
     // has the Java 9+ native scaling been disabled
-    private static boolean java9ScalingDisabled = !isJava9();
+    private static final boolean isJava9 = isJava9();
+    private static boolean java9ScalingDisabled = !isJava9;
 
     /**
      * Automatically determines scale factor and applies scaling for all existing and new windows
@@ -53,8 +54,12 @@ public class SwingDPI {
      * to avoid double scaling
      */
     public static void applyScalingAutomatically(boolean disableJava9NativeScaling) {
-        if (isJava9() && !disableJava9NativeScaling) {
-            return;
+        if (isJava9) {
+            if (!disableJava9NativeScaling) {
+                return;
+            } else {
+                disableJava9NativeScaling();
+            }
         }
         determineScaleFactor();
         if (scaleFactor != DEFAULT_SCALE_FACTOR) {
@@ -64,10 +69,20 @@ public class SwingDPI {
 
     /**
      * Determines, sets the system DPI scaling setting and retrieves scale factor
+     * Returns 1.0 if Java 9 scaling is preferred
      *
      * @return DPI scale factor
      */
     public static float determineScaleFactor() {
+        return isJava9 && !java9ScalingDisabled ? 1.0F : _determineScaleFactor();
+    }
+
+    /**
+     * Determines, sets the system DPI scaling setting and retrieves scale factor
+     *
+     * @return DPI scale factor
+     */
+    public static float _determineScaleFactor() {
         float resolution = Toolkit.getDefaultToolkit().getScreenResolution(); //gets the screen resolution in percent, i.e. system DPI scaling
         if (resolution != 100.0f) { //when the system DPI scaling is not 100%
             setScaleFactor(resolution / 96.0f); //divide the system DPI scaling by default (100%) DPI and get the scale factor
@@ -92,15 +107,15 @@ public class SwingDPI {
      */
     public static void setScaleApplied(boolean apply, boolean scaleExistingFrames) {
         if (apply == scaleApplied) {
-            return; //scale already applied/disabled
+            return; // scale already applied/disabled
         }
         scaleApplied = apply;
         if (!apply) {
-            setScaleFactor(1.0f); //after that, the scaling factor should be determined again
+            setScaleFactor(1.0f); // after that, the scaling factor should be determined again
         }
 
-        UIDefaults defaults = UIManager.getLookAndFeelDefaults(); //gets the Swing UI defaults - we will writing in them
-        for (Object key : Collections.list(defaults.keys())) { //processing all default UI keys
+        UIDefaults defaults = UIManager.getLookAndFeelDefaults(); // gets the Swing UI defaults - we will writing in them
+        for (Object key : Collections.list(defaults.keys())) { // processing all default UI keys
             if(isWindowsLF() && Arrays.asList
                     (
                         "RadioButtonMenuItem.font",
@@ -296,7 +311,7 @@ public class SwingDPI {
 
     // https://stackoverflow.com/questions/33926645/joptionpane-icon-gets-cropped-in-windows-10
     private static void fixJOptionPaneIcons() {
-        if (!isWindowsLF() || isJava9() || (scaleFactor != 1.25 && scaleFactor != 1.5)) return;
+        if (!isWindowsLF() || isJava9 || (scaleFactor != 1.25 && scaleFactor != 1.5)) return;
         try {
             String[][] icons = {
                     {"OptionPane.warningIcon", "65581"},
@@ -383,8 +398,9 @@ public class SwingDPI {
     }
 
     public static void disableJava9NativeScaling() {
-        if (isJava9()) {
+        if (isJava9) {
             System.setProperty("sun.java2d.uiScale", "1.0");
+            System.setProperty("glass.win.uiScale", "100%");
             System.setProperty("prism.allowhidpi", "false");
             java9ScalingDisabled = true;
         }
@@ -395,7 +411,7 @@ public class SwingDPI {
     }
 
     // or greater
-    private static boolean isJava9() {
+    public static boolean isJava9() {
         return !System.getProperty("java.specification.version").startsWith("1.");
     }
     private static boolean isWindowsLF() {
